@@ -1,0 +1,8 @@
+test/
+tests/
+tsconfig.json
+src/
+scripts/
+.vscode/
+.env
+clean-builds.js

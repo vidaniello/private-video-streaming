@@ -1,0 +1,40 @@
+{
+  "type": "commonjs",
+  "name": "@vidaniello/private-video-streaming",
+  "version": "1.0.0",
+  "description": "Private video streming platform in NodeJs",
+  "main": "./dist/main.js",
+  "scripts": {
+    "test:main": "node clean-builds.js && npx tsc && node ./dist/main.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vidaniello/private-video-streaming.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vidaniello/private-video-streaming/issues"
+  },
+  "homepage": "https://github.com/vidaniello/private-video-streaming#readme",
+  "author": "github.com/vidaniello",
+  "license": "GPL-3.0",
+  "bin": {
+    "vidaniello.private-video-streaming.run": "./dist/main.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.6",
+    "express": "^4.21.1",
+    "http-status-codes": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2"
+  }
+}
