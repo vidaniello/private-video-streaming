@@ -5,7 +5,7 @@
   "description": "Private video streming platform in NodeJs",
   "main": "./dist/main.js",
   "scripts": {
-    "test:main": "node clean-builds.js && npx tsc && node ./dist/main.js"
+    "test:main": "node ./dev/clean-builds.js && npx tsc && node ./dist/main.js"
   },
   "publishConfig": {
     "access": "public"

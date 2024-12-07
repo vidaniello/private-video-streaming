@@ -5,4 +5,4 @@ src/
 scripts/
 .vscode/
 .env
-clean-builds.js
+dev/
