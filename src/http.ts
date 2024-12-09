@@ -3,16 +3,21 @@ import {StatusCodes} from 'http-status-codes';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
-import { LoginStatus } from './common';
-import {HomePage, LoginPage} from './statics';
+import {LoginSessionWorker, LoginSessionData} from './common';
+import {HomePage, LoginPage, VideoPage} from './statics';
 
 
 const httpListenPort:Number = 8080; 
 
 declare module 'express-session' {
     interface SessionData {
-        loginStatus : LoginStatus;
+        loginStatus : LoginSessionData;
     }
+}
+
+
+interface VideoQuery {
+    videoId:string;
 }
 
 export class Http{
@@ -29,8 +34,6 @@ export class Http{
         //Http.app.use(express.json());
         Http.app.use(cookieParser());
 
-        let ff = process.env.expressSessionKey;
-
         Http.app.use(session(
             {
                 secret: process.env.expressSessionKey,
@@ -39,7 +42,7 @@ export class Http{
             }
         ));
 
-        Http.app.set('etag', false);
+        //Http.app.set('etag', false);
 
         /**Initial interceptor */
         Http.app.use((req, res, next) => {
@@ -52,28 +55,36 @@ export class Http{
             next()
         });
         
-        Http.app.listen(httpListenPort, ()=>{
-            console.log("Http-server listen on port "+httpListenPort);
-        });
+
 
         Http.app.get('/', Http.onHomePage);
 
         Http.app.post('/login', Http.onLoginPage);
 
+        Http.app.post('/logout', Http.onLogoutPage);
 
+        Http.app.get('/video', Http.onVideoPage);
+
+        Http.app.get('/stream', Http.onStreamRequest);
+
+       
         /* final interceptor
         Http.app.use((req, res, next) => {
             let i = 0;
             res.end();
         });
         */
+
+        Http.app.listen(httpListenPort, ()=>{
+            console.log("Http-server listen on port "+httpListenPort);
+        });
     }
 
     static onHomePage(req: Request, resp: Response){
-        let logStat:LoginStatus = Http.getLoginStatus(req);
+        let logStat:LoginSessionWorker = Http.getLoginStatus(req);
         let message:string = "";
-        if(logStat.logged) {
-            message = "Hi "+logStat.username+"!";
+        if(logStat.isLogged()) {
+            message = "Hi "+logStat.getUsername()+"!";
             resp.send(HomePage.body(message));
         } else {
             message = "Not Logged in";
@@ -82,15 +93,14 @@ export class Http{
     }
 
     static onLoginPage(req: Request, resp: Response){
-        let logStat:LoginStatus = Http.getLoginStatus(req);
+        let logStat:LoginSessionWorker = Http.getLoginStatus(req);
         let username = req.body.username;
         let pswd = req.body.password;
         if(username!==undefined && pswd!==undefined){
             if(username!=process.env.loginusername && pswd!=process.env.loginpassword)
                 resp.send(LoginPage.body("<span style=\"color: red;\">Wrong username or password!</span>"));
             else {
-                logStat.logged = true;
-                logStat.username = username;
+                logStat.login(username);
                 resp.redirect("/");
             }
         } else 
@@ -98,11 +108,48 @@ export class Http{
             resp.redirect("/");
     }
 
-    static getLoginStatus(req: Request) :LoginStatus{
-        let logStatus:LoginStatus = req.session.loginStatus;
+    static onLogoutPage(req: Request, resp: Response){
+        let logStat:LoginSessionWorker = Http.getLoginStatus(req);
+        logStat.logout();
+        resp.redirect("/");
+    }
+
+
+    
+
+    static onVideoPage(req: Request<{},{},{},VideoQuery>, resp: Response){
+        let logStat:LoginSessionWorker = Http.getLoginStatus(req);
+        if(!logStat.isLogged())
+            resp.redirect("/");
+        else {
+            resp.send(VideoPage.body(logStat.getWelcomeMessage(),req.query.videoId));
+        }
+    }
+
+
+    static onStreamRequest(req: Request, resp: Response){
+        let logStat:LoginSessionWorker = Http.getLoginStatus(req);
+        let l = req.params;
+        let d = 0;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    static getLoginStatus(req: Request<any,any,any,any>) :LoginSessionWorker{
+        let logStatus:LoginSessionData = req.session.loginStatus;
         if(logStatus==undefined || logStatus==null)
-            req.session.loginStatus = new LoginStatus();
-        return req.session.loginStatus;
+            req.session.loginStatus = new LoginSessionData();
+        //return Object.assign(new LoginStatus(),req.session.loginStatus)
+        return new LoginSessionWorker(req.session.loginStatus);
     }
     
     static onException(exception: Error | any, resp: Response){
