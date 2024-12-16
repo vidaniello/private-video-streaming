@@ -35,3 +35,9 @@ export class LoginSessionWorker {
         return "Hi "+this.getUsername()+"!";
     }
 }
+
+export class Video {
+    id:number;
+    absolutePath:string;
+    name:string;
+}

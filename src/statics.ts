@@ -1,7 +1,16 @@
 
 
+import {Video} from './common';
+
 export class HomePage {
-    public static body(logged:string) {
+    public static body(logged:string, allVideo:Video[]) {
+
+        let videosHtml:string = '';
+
+        for(let vid of allVideo){
+            videosHtml += `<div><a href="/video?videoId=${vid.id}">${vid.name}</a></div>\n`;
+        }
+
         return `
 <!DOCTYPE html>
 <html>
@@ -14,7 +23,10 @@ export class HomePage {
 <body>
     <h1>Private video streaming platform</h1>
     <div>${logged} <form method="POST" action="/logout" style="display: inline;"><input type="submit" value="logout"></form></div> 
-    lista video <a href="/video?videoId=vid_a">Video A</a>
+    <div>
+        <h3>lista video</h3>
+        ${videosHtml}
+    </div>
 </body>
 </html>
 `

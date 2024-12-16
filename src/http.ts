@@ -3,7 +3,9 @@ import {StatusCodes} from 'http-status-codes';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
-import {LoginSessionWorker, LoginSessionData} from './common';
+import path from 'path';
+import fs from 'fs';
+import {LoginSessionWorker, LoginSessionData, Video} from './common';
 import {HomePage, LoginPage, VideoPage} from './statics';
 
 
@@ -23,6 +25,8 @@ interface VideoQuery {
 export class Http{
 
     static app: Express;
+
+    static videoList:Video[] = [];
 
     public static async init(){
 
@@ -78,6 +82,25 @@ export class Http{
         Http.app.listen(httpListenPort, ()=>{
             console.log("Http-server listen on port "+httpListenPort);
         });
+
+        Http.loadAllVideo();
+    }
+
+    static loadAllVideo(){
+        let fileList:string[] = [];
+
+        Http.throughDirectory(process.env.videopath, fileList);
+        fileList = Http.filterFiles(fileList);
+
+        let i:number = 0;
+        for(let file of fileList){
+            i++;
+            let vid:Video = new Video();
+            vid.id = i;
+            vid.absolutePath = file;
+            vid.name = path.basename(file);
+            Http.videoList.push(vid);
+        }
     }
 
     static onHomePage(req: Request, resp: Response){
@@ -85,7 +108,7 @@ export class Http{
         let message:string = "";
         if(logStat.isLogged()) {
             message = "Hi "+logStat.getUsername()+"!";
-            resp.send(HomePage.body(message));
+            resp.send(HomePage.body(message, Http.videoList));
         } else {
             message = "Not Logged in";
             resp.send(LoginPage.body(message));
@@ -127,6 +150,7 @@ export class Http{
     }
 
 
+
     static onStreamRequest(req: Request, resp: Response){
         let logStat:LoginSessionWorker = Http.getLoginStatus(req);
         let l = req.params;
@@ -157,6 +181,28 @@ export class Http{
             .send({exceptionType: exception.name, exceptionCode: exception.code, exceptionMessage: exception.message/*, stack: JSON.stringify(error.stack)*/});
     }
 
+    static throughDirectory(dir:string, fileList:string[]) {
 
+        fs.readdirSync(dir).forEach(file=>{
+            let absPath = path.join(dir,file);
+            if(fs.statSync(absPath).isDirectory())
+                Http.throughDirectory(absPath, fileList);
+            else
+                fileList.push(absPath);
+        });
+
+    }
+
+    static filterFiles(listFiles:string[]):string[]{
+        let ret:string[] = [];
+
+        for(let f of listFiles)
+            if(f.toLocaleLowerCase().endsWith('.mp4'))
+                ret.push(f);
+        
+        return ret;
+    }
+
+    //info about mp4: https://stackoverflow.com/questions/36278795/node-js-get-video-and-audio-format-information-of-an-mp4-file
  
 }
