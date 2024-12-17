@@ -151,10 +151,51 @@ export class Http{
 
 
 
-    static onStreamRequest(req: Request, resp: Response){
+    static onStreamRequest(req: Request<{},{},{},VideoQuery>, resp: Response){
         let logStat:LoginSessionWorker = Http.getLoginStatus(req);
-        let l = req.params;
-        let d = 0;
+
+        if(!logStat.isLogged())
+            resp.redirect("/");
+        else {
+
+
+            let vidId:string = req.query.videoId;
+
+            if(vidId!==undefined){
+
+                let video:Video = null;
+                for(let vid of Http.videoList)
+                    if(vid.id.toString()==vidId){
+                        video = vid;
+                        break;
+                    }
+                
+                    if(video!=null){
+                        let range:string = req.headers.range;
+                        if(range) {
+                            let videoSize = fs.statSync(video.absolutePath).size;
+                            let CHUNK_SIZE = 10 ** 6; // 1MB
+                            let start = Number(range.replace(/\D/g, ""));
+                            let end = Math.min(start + CHUNK_SIZE, videoSize - 1);
+                            let contentLength = end - start + 1;
+                            let headers = {
+                                "Content-Range": `bytes ${start}-${end}/${videoSize}`,
+                                "Accept-Ranges": "bytes",
+                                "Content-Length": contentLength,
+                                "Content-Type": "video/mp4",
+                            };
+                            resp.writeHead(206, headers);
+                            let videoStream = fs.createReadStream(video.absolutePath, { start, end });
+                            videoStream.pipe(resp);
+                        } else
+                        resp.redirect("/");
+                    } else
+                        resp.redirect("/");
+
+            } else
+                resp.redirect("/");
+        }
+
     }
 
 

@@ -47,9 +47,12 @@ export class VideoPage {
 <body>
     <h1>Private video streaming platform</h1>
     <div>${logged} <form method="POST" action="/logout" style="display: inline;"><input type="submit" value="logout"></form></div> 
-    <video id="${idvideo}" controls style="height: 500px;">
+    <video id="${idvideo}" controls style="height: 500px;" controlsList="nodownload">
         <source src="/stream?videoId=${idvideo}" type="video/mp4">
     </video>
+    <div>
+        <a href="/">GO HOME</a>
+    </div>
 </body>
 </html>
 `
