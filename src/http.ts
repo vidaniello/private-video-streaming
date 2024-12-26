@@ -9,7 +9,7 @@ import {LoginSessionWorker, LoginSessionData, Video} from './common';
 import {HomePage2, LoginPage2} from './statics';
 
 
-const httpListenPort:Number = 8080; 
+//const httpListenPort:Number = 8080; 
 
 declare module 'express-session' {
     interface SessionData {
@@ -81,8 +81,8 @@ export class Http{
         });
         */
 
-        Http.app.listen(httpListenPort, ()=>{
-            console.log("Http-server listen on port "+httpListenPort);
+        Http.app.listen(process.env.httpserviceport, ()=>{
+            console.log("Http-server listen on port "+process.env.httpserviceport);
         });
 
         Http.loadAllVideo();
