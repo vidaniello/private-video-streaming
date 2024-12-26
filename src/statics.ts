@@ -236,6 +236,7 @@ ${getFavicon()}
 			padding-bottom: 5px;
 			padding-top: 5px;
 			text-align: right;
+			padding-left: 5px;
 		}
 
 		.bee-row-1 .bee-col-1 .bee-block-1 {
