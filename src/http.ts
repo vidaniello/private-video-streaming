@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import {LoginSessionWorker, LoginSessionData, Video} from './common';
-import {HomePage, LoginPage, VideoPage} from './statics';
+import {HomePage2, LoginPage2} from './statics';
 
 
 const httpListenPort:Number = 8080; 
@@ -64,10 +64,12 @@ export class Http{
         Http.app.get('/', Http.onHomePage);
 
         Http.app.post('/login', Http.onLoginPage);
+        Http.app.get('/login', Http.onHomePage);
 
-        Http.app.post('/logout', Http.onLogoutPage);
+        Http.app.get('/logout', Http.onLogoutPage);
 
-        Http.app.get('/video', Http.onVideoPage);
+
+        //Http.app.get('/video', Http.onVideoPage);
 
         Http.app.get('/stream', Http.onStreamRequest);
 
@@ -108,10 +110,10 @@ export class Http{
         let message:string = "";
         if(logStat.isLogged()) {
             message = "Hi "+logStat.getUsername()+"!";
-            resp.send(HomePage.body(message, Http.videoList));
+            resp.send(HomePage2.body(message, Http.videoList));
         } else {
-            message = "Not Logged in";
-            resp.send(LoginPage.body(message));
+            message = "Insert username and password";
+            resp.send(LoginPage2.body(message));
         }
     }
 
@@ -120,9 +122,10 @@ export class Http{
         let username = req.body.username;
         let pswd = req.body.password;
         if(username!==undefined && pswd!==undefined){
-            if(username!=process.env.loginusername && pswd!=process.env.loginpassword)
-                resp.send(LoginPage.body("<span style=\"color: red;\">Wrong username or password!</span>"));
-            else {
+            if(username!=process.env.loginusername || pswd!=process.env.loginpassword) {
+                resp.send(LoginPage2.body("<span style=\"color: red;\">Wrong username or password!</span>"));
+                //resp.redirect("/");
+            }else {
                 logStat.login(username);
                 resp.redirect("/");
             }
@@ -140,6 +143,7 @@ export class Http{
 
     
 
+    /*
     static onVideoPage(req: Request<{},{},{},VideoQuery>, resp: Response){
         let logStat:LoginSessionWorker = Http.getLoginStatus(req);
         if(!logStat.isLogged())
@@ -148,7 +152,7 @@ export class Http{
             resp.send(VideoPage.body(logStat.getWelcomeMessage(),req.query.videoId));
         }
     }
-
+    */
 
 
     static onStreamRequest(req: Request<{},{},{},VideoQuery>, resp: Response){
@@ -174,10 +178,16 @@ export class Http{
                         let range:string = req.headers.range;
                         if(range) {
                             let videoSize = fs.statSync(video.absolutePath).size;
-                            let CHUNK_SIZE = 10 ** 6; // 1MB
+                            let CHUNK_SIZE = 1_000_000;//10 ** 6; // 1MB
                             let start = Number(range.replace(/\D/g, ""));
                             let end = Math.min(start + CHUNK_SIZE, videoSize - 1);
                             let contentLength = end - start + 1;
+
+                            //let madByte = false;
+                            //if((start-1_000_000)>1_000_000 && (end+1_000_000)<videoSize)
+                            //    madByte = true;
+
+
                             let headers = {
                                 "Content-Range": `bytes ${start}-${end}/${videoSize}`,
                                 "Accept-Ranges": "bytes",
@@ -185,7 +195,15 @@ export class Http{
                                 "Content-Type": "video/mp4",
                             };
                             resp.writeHead(206, headers);
+
+                            //if(madByte){
+                            //    let spost = Http.getRandomSignedInt(2);
+                            //    start = start+spost
+                            //    end = end+spost;
+                            //}
+
                             let videoStream = fs.createReadStream(video.absolutePath, { start, end });
+
                             videoStream.pipe(resp);
                         } else
                         resp.redirect("/");
@@ -203,7 +221,9 @@ export class Http{
 
 
 
-
+    static getRandomSignedInt(max) {
+        return Math.floor(Math.random() * max)+(-Math.floor(Math.random() * max));
+    }
 
 
 
