@@ -124,6 +124,7 @@ export class Http{
         if(username!==undefined && pswd!==undefined){
             if(username!=process.env.loginusername || pswd!=process.env.loginpassword) {
                 resp.send(LoginPage2.body("<span style=\"color: red;\">Wrong username or password!</span>"));
+                resp.status(StatusCodes.UNAUTHORIZED);
                 //resp.redirect("/");
             }else {
                 logStat.login(username);
