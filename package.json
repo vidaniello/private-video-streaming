@@ -1,7 +1,7 @@
 {
   "type": "commonjs",
   "name": "@vidaniello/private-video-streaming",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Private video streming platform in NodeJs",
   "main": "./dist/main.js",
   "scripts": {
