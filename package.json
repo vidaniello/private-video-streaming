@@ -7,8 +7,7 @@
   "scripts": {
     "test:main": "node ./dev/clean-builds.js && npx tsc && node ./dist/main.js",
     "prebuild": "node ./dev/clean-builds.js",
-    "build": "npx tsc",
-    "start": "node ./dist/main.js"
+    "build": "npx tsc"
   },
   "publishConfig": {
     "access": "public"
